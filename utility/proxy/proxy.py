@@ -104,11 +104,10 @@ def prepare_for_request(proxy):
 
 class TestProxy:
     process_count = None
-    db = None
 
     def __init__(self, process_count=25):
         self.process_count = process_count
-        self.db = ProxyDB(process_count)
+        # self.db = ProxyDB(process_count)
 
     def test_request(self, proxy_dict):
 
@@ -135,7 +134,7 @@ class TestProxy:
                 # forwarder = bs.find('b', string='X-Forwarded-For')
                 # print('forwarder: ', forwarder.parent.parent.find_all('td')[-1].text)
 
-                self.db.mark_as_working(proxy_dict['id'])
+                db.mark_as_working(proxy_dict['id'])
 
                 if req.status_code == 200:
                     return proxies.get('http')
@@ -146,7 +145,7 @@ class TestProxy:
             except (ConnectTimeout, ProxyError, ConnectionError, ReadTimeout):
 
                 # прокся полетела с ошибкой - указываем, что тестировали ее
-                self.db.increase_try_count(proxy_dict['id'])
+                db.increase_try_count(proxy_dict['id'])
 
                 return None
         else:
@@ -154,11 +153,13 @@ class TestProxy:
 
     def test_proxies(self):
 
+        db = ProxyDB(self.process_count)
+
         # сразу обновляем список проксей, чтоб бежать по всем
-        self.db.get_new_proxies()
+        db.get_new_proxies()
 
         # забираем прокси из общего файла
-        proxy_list = self.db.get_proxy_list()
+        proxy_list = db.get_proxy_list()
         print(len(proxy_list))
 
         # downloader = multiprocessing.Process(target=get_req, args=(proxies,))
